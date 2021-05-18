@@ -13,16 +13,14 @@
       #messages { list-style-type: none; margin: 0; padding: 0; }
       #messages > li { padding: 0.5rem 1rem; }
       #messages > li:nth-child(odd) { background: #efefef; }
-
-      #typing-indicator { display: none; }
     </style>
   </head>
   <body>
+    <a href="/help.html">leave room</a>
     <ul id="messages"></ul>
     <form id="form" action="">
       <input id="input" autocomplete="off" /><button>Send</button>
     </form>
-    <h1 id="typing-indicator">typing...</h1>
     <script src="/socket.io/socket.io.js"></script>
     <script>
         var socket = io();
@@ -31,36 +29,28 @@
         var form = document.getElementById('form');
         var input = document.getElementById('input');
         var typing_indicator = document.getElementById('typing-indicator');
+
+        var person = prompt("Please enter your name");
       
         form.addEventListener('submit', function(e) {
           e.preventDefault();
+          if (person == null) {
+            person = prompt('Please enter a username before sending a message.');
+            return;
+          }
           if (input.value) {
-            socket.emit('chat message', input.value);
+            socket.emit('chat message', input.value, person);
             input.value = '';
           }
         });
-
-        form.addEventListener('input', function(e) {
-           e.preventDefault();
-            if (input.value) {
-               socket.emit('typing');
-           } else {
-               socket.emit('typing-stopped');
-           }
-        })
       
-        socket.on('chat message', function(msg) {
+        socket.on('chat message', function(msg, sender) {
           var item = document.createElement('li');
-          item.textContent = msg;
+          item.textContent = `${sender}: ${msg}`;
           messages.appendChild(item);
           window.scrollTo(0, document.body.scrollHeight);
         });
-        socket.on('typing', function() {
-            typing_indicator.style.display = 'block';
-        });
-        socket.on('typing-stopped', function() {
-            typing_indicator.style.display = 'none';
-        });
+        
       </script>
   </body>
 </html>
