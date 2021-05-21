@@ -1,27 +1,20 @@
 const express = require('express');
 const app = express();
-const http = require('http');
-const server = http.createServer(app);
-const { Server } = require("socket.io");
-const io = new Server(server);
+const http = require('http').Server(app);
+const io = require('socket.io')(http, { cors: {}});
 
-// app.get('/', (req, res) => {
-//   res.sendFile(__dirname + '/index.html');
-// });
-app.use(express.static(__dirname));
-
-io.on('connection', (socket) => {
-  console.log('a user connected');
-  socket.on('chat message', (msg, sender) => {
-    io.emit('chat message', msg, sender); 
-    io.emit('typing-stopped');
-    console.log(msg);
-  });
-  socket.on('disconnect', () => {
-    console.log('user disconnected');
-  })
+//Serve static react app
+app.use(express.static('/'));
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/hello.html')
 });
 
-server.listen(80, () => {
-  console.log('listening on *:80');
+io.on('connection', (socket) => {
+  socket.on('chat message', (msg) => {
+    io.emit('chat message', msg);
+  });
+});
+
+http.listen(process.env.PORT || 8080, () => {
+    console.log(`Listening on port ${process.env.PORT || 8080}!`);
 });
