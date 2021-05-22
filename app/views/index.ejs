@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        html, body { margin: 0; padding: 0; }
+        .container { width: 80%; margin: auto; height: 1600px; background-color: blanchedalmond; overflow: hidden; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <ul id="rooms"></ul>
+        <form id="form" action="">
+            <input id="input" autocomplete="off" /><button>Send</button>
+        </form>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var socket = io();
+        
+        var rooms = document.getElementById('rooms');
+        var form = document.getElementById('form');
+        var input = document.getElementById('input');
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (input.value) {
+                socket.emit('add room', input.value);
+                input.value = '';
+            }
+        });
+
+        socket.on('get rooms', (room_array) => {
+            for (i = 0; i < room_array.length; i++) {
+                add_room(room_array[i]);
+            }
+        });
+
+        socket.on('room added', (room) => {
+            add_room(room);
+        });
+
+        socket.on('redirect', (destination) => {
+            window.location.href = destination;
+        });
+
+        function add_room(room) {
+            var item = document.createElement('li');
+            item.textContent = room;
+            item.style.cursor = 'pointer';
+            item.addEventListener("click", () => {
+                socket.emit('join room', room);
+            });
+            rooms.appendChild(item);
+        }
+    </script>
+</body>
+</html>
