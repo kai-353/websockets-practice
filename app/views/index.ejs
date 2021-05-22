@@ -52,7 +52,8 @@
             item.textContent = room;
             item.style.cursor = 'pointer';
             item.addEventListener("click", () => {
-                socket.emit('join room', room);
+                // socket.emit('join room', room);
+                window.location.href = `/rooms/${room}`
             });
             rooms.appendChild(item);
         }

@@ -18,11 +18,13 @@ app.use(session);
 app.set('view engine', 'ejs');
 
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/views/index.html');
+    // res.sendFile(__dirname + '/views/index.html');
+    res.render('index');
 });
 
-app.get('/room', (req, res) => {
-    res.sendFile(__dirname + '/views/room.html');
+app.get('/rooms/:room', (req, res) => {
+    // res.sendFile(__dirname + '/views/room.html');
+    res.render('room', {data : {room: req.params.room} });
 });
 
 var rooms = ["room1", "room2"];
@@ -30,7 +32,7 @@ var rooms = ["room1", "room2"];
 var roomForSocket = {};
 
 io.on('connection', (socket) => {
-    console.log()
+    console.log(roomForSocket);
 
     console.log(`socket connected with id ${socket.id}`);
     io.to(socket.id).emit('get rooms', rooms);
@@ -46,12 +48,19 @@ io.on('connection', (socket) => {
         socket.join(room_name);
         roomForSocket[socket.id] = room_name;
         console.log(roomForSocket);
-        io.to(socket.id).emit('redirect', '/room')
+        // io.to(socket.id).emit('redirect', `/rooms/${room_name}`);
     });
 
-    socket.on('redirect all', () => {
-        // console.log(roomForSocket[socket.id]);
-        socket.to(roomForSocket[socket.id]).emit('redirect', '/');
+    socket.on('chat message', (msg) => {
+        const room = roomForSocket[socket.id];
+        io.to(room).emit('chat message', msg);
+    });
+
+    socket.on('disconnect', () => {
+        const room = roomForSocket[socket.id];
+        socket.leave(room);
+        delete roomForSocket[socket.id];
+        // io.to(socket.id).emit('redirect', '/');
     });
 });
 
